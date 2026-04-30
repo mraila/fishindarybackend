@@ -1,0 +1,23 @@
+POST http://localhost:8080/catches
+Content-Type: application/json
+
+{
+    "fish_type": "pike",
+    "weight": 1500,
+    "length": 58,
+    "lure": "aglia #3"
+}
+
+###
+GET http://localhost:8080/catches
+
+###
+GET http://localhost:8080/health
+Content-Type: application/json
+
+{
+    "fish_type": "pike",
+    "weight": 1500,
+    "length": 58,
+    "lure": "aglia #3"
+}
