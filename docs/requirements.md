@@ -1,2 +1,0 @@
-# Fishingdary requirements
-
