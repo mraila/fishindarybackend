@@ -17,7 +17,11 @@ func TestCreateCatch(t *testing.T) {
 		"fish_type": "pike",
 		"weight": 1500,
 		"length": 58,
-		"lure": "aglia #3"
+		"lure": "aglia #3",
+		"location": {
+			"latitude": 60.1695,
+			"longitude": 24.9354
+		}
 	}`
 	req := httptest.NewRequest(http.MethodPost, "/catches", strings.NewReader(reqBody))
 	w := httptest.NewRecorder()
@@ -43,6 +47,14 @@ func TestCreateCatch(t *testing.T) {
 
 	if response.FishType != "pike" {
 		t.Errorf("Expected fish type pike, got %s", response.FishType)
+	}
+
+	if response.Location.Latitude != 60.1695 {
+		t.Errorf("expected lat 60.1695, got %f", response.Location.Latitude)
+	}
+
+	if response.Location.Longitude != 24.9354 {
+		t.Errorf("expected lon 24.9354, got %f", response.Location.Longitude)
 	}
 }
 
