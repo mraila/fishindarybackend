@@ -4,6 +4,8 @@ import (
 	"encoding/json"
 	"fishindary/handler"
 	"fishindary/model"
+	"fishindary/service"
+	"fishindary/store"
 	"net/http"
 	"net/http/httptest"
 	"strings"
@@ -26,8 +28,13 @@ func TestCreateCatch(t *testing.T) {
 	req := httptest.NewRequest(http.MethodPost, "/catches", strings.NewReader(reqBody))
 	w := httptest.NewRecorder()
 
-	httpHandler := http.HandlerFunc(handler.CreateCatch)
-	httpHandler.ServeHTTP(w, req)
+	st := store.NewStore()
+
+	spotSvc := service.NewSpotService(st)
+	catchSvc := service.NewCatchService(st, spotSvc)
+
+	h := handler.NewCatchHandler(catchSvc)
+	h.CreateCatch(w, req)
 
 	res := w.Result()
 
@@ -58,13 +65,56 @@ func TestCreateCatch(t *testing.T) {
 	}
 }
 
-func TestGetCatches(t *testing.T) {
-	req := httptest.NewRequest(http.MethodGet, "/catches", nil)
+func TestCreateCatch_InvalidInput(t *testing.T) {
+	st := store.NewStore()
+
+	spotSvc := service.NewSpotService(st)
+	catchSvc := service.NewCatchService(st, spotSvc)
+
+	h := handler.NewCatchHandler(catchSvc)
+
+	body := `{
+		"fish_type": "",
+		"weight": 0,
+		"length": 0,
+		"location": { "lat": 0, "lng": 0 }
+	}`
+
+	req := httptest.NewRequest(http.MethodPost, "/catches", strings.NewReader(body))
+	req.Header.Set("Content-Type", "application/json")
 
 	w := httptest.NewRecorder()
 
-	httpHandler := http.HandlerFunc(handler.GetCatches)
-	httpHandler.ServeHTTP(w, req)
+	h.CreateCatch(w, req)
+
+	res := w.Result()
+
+	if res.StatusCode != http.StatusBadRequest {
+		t.Fatalf("expected 400, got %d", res.StatusCode)
+	}
+}
+
+func TestGetCatches(t *testing.T) {
+	st := store.NewStore()
+
+	spotSvc := service.NewSpotService(st)
+	catchSvc := service.NewCatchService(st, spotSvc)
+
+	h := handler.NewCatchHandler(catchSvc)
+
+	// seed data first
+	_ = catchSvc.CreateCatch(model.Catch{
+		FishType: "pike",
+		Weight:   1500,
+		Length:   58,
+		Lure:     "aglia #3",
+		Location: model.Location{Latitude: 60.1695, Longitude: 24.9354},
+	})
+
+	req := httptest.NewRequest(http.MethodGet, "/catches", nil)
+	w := httptest.NewRecorder()
+
+	http.HandlerFunc(h.GetCatches).ServeHTTP(w, req)
 
 	res := w.Result()
 
@@ -75,7 +125,7 @@ func TestGetCatches(t *testing.T) {
 	var result []model.Catch
 	json.NewDecoder(res.Body).Decode(&result)
 
-	if len(result) == 0 {
-		t.Fatalf("expected at least 1 catch")
+	if len(result) != 1 {
+		t.Fatalf("expected 1 catch, got %d", len(result))
 	}
 }
