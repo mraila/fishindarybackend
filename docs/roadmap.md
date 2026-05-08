@@ -22,10 +22,14 @@ This project is a backend system for logging fishing catches with enrichment dat
 ---
 
 ## 🔵 Phase 3 — Data Model Expansion (NEXT)
-- [ ] Add location (lat/lng) to catches
+- [x] Add spot model
+- [x] Add body of water to spot
+- [ ] Add empty spots (no catches)
+- [x] Add spot to catches
 - [ ] Validate input fields
 - [ ] Improve timestamps handling
 - [ ] Define OpenAPI spec
+- [ ] Catch all/biggest species achievements/challenges
 
 ---
 
