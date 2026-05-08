@@ -5,11 +5,37 @@ Content-Type: application/json
     "fish_type": "pike",
     "weight": 1500,
     "length": 58,
-    "lure": "aglia #3"
+    "lure": "aglia #3",
+    "location": {
+        "latitude": 47.8678,
+        "longitude": 54.6251
+    },
+    "spot_id": 1
 }
 
 ###
 GET http://localhost:8080/catches
+
+###
+POST http://localhost:8080/spots
+Content-Type: application/json
+
+{
+    "name": "ilankele",
+    "visited": true,
+    "body_of_water": "nemunas",
+    "location": {
+        "latitude": 47.8678,
+        "longitude": 54.6251
+    }
+}
+
+###
+GET http://localhost:8080/spots
+
+###
+//Get catches by spot id
+GET http://localhost:8080/spots/1/catches
 
 ###
 GET http://localhost:8080/health
