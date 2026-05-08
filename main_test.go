@@ -6,6 +6,7 @@ import (
 	"fishindary/model"
 	"fishindary/service"
 	"fishindary/store"
+	"fmt"
 	"net/http"
 	"net/http/httptest"
 	"strings"
@@ -127,5 +128,155 @@ func TestGetCatches(t *testing.T) {
 
 	if len(result) != 1 {
 		t.Fatalf("expected 1 catch, got %d", len(result))
+	}
+}
+
+func TestCreateCatch_WithValidSpot(t *testing.T) {
+	st := store.NewStore()
+
+	spotSvc := service.NewSpotService(st)
+	catchSvc := service.NewCatchService(st, spotSvc)
+
+	catchHandler := handler.NewCatchHandler(catchSvc)
+
+	// create spot first
+	spot := spotSvc.CreateSpot(model.Spot{
+		Name: "Lake edge",
+		Location: model.Location{
+			Latitude:  54.7,
+			Longitude: 25.3,
+		},
+	})
+
+	body := fmt.Sprintf(`{
+		"fish_type": "pike",
+		"weight": 2000,
+		"length": 70,
+		"lure": "spinner",
+		"spot_id": %d,
+		"location": {
+			"latitude": 54.7,
+			"longitude": 25.3
+		}
+	}`, spot.ID)
+
+	req := httptest.NewRequest(http.MethodPost, "/catches", strings.NewReader(body))
+	req.Header.Set("Content-Type", "application/json")
+
+	w := httptest.NewRecorder()
+
+	catchHandler.CreateCatch(w, req)
+
+	res := w.Result()
+
+	if res.StatusCode != http.StatusOK {
+		t.Fatalf("expected 200, got %d", res.StatusCode)
+	}
+
+	var response model.Catch
+	json.NewDecoder(res.Body).Decode(&response)
+
+	if response.SpotID == nil {
+		t.Fatalf("expected spot id to be set")
+	}
+
+	if *response.SpotID != spot.ID {
+		t.Fatalf("expected spot id %d, got %d", spot.ID, *response.SpotID)
+	}
+}
+
+func TestCreateCatch_InvalidSpotID(t *testing.T) {
+	st := store.NewStore()
+
+	spotSvc := service.NewSpotService(st)
+	catchSvc := service.NewCatchService(st, spotSvc)
+
+	catchHandler := handler.NewCatchHandler(catchSvc)
+
+	body := `{
+		"fish_type": "pike",
+		"weight": 1000,
+		"length": 50,
+		"lure": "spinner",
+		"spot_id": 999,
+		"location": {
+			"latitude": 54.7,
+			"longitude": 25.3
+		}
+	}`
+
+	req := httptest.NewRequest(http.MethodPost, "/catches", strings.NewReader(body))
+	req.Header.Set("Content-Type", "application/json")
+
+	w := httptest.NewRecorder()
+
+	catchHandler.CreateCatch(w, req)
+
+	res := w.Result()
+
+	if res.StatusCode != http.StatusBadRequest {
+		t.Fatalf("expected 400, got %d", res.StatusCode)
+	}
+}
+
+func TestGetCatchesBySpotID(t *testing.T) {
+	st := store.NewStore()
+
+	spotSvc := service.NewSpotService(st)
+	catchSvc := service.NewCatchService(st, spotSvc)
+
+	spotHandler := handler.NewSpotHandler(spotSvc, catchSvc)
+
+	// create spot
+	spot := spotSvc.CreateSpot(model.Spot{
+		Name: "Perch bay",
+		Location: model.Location{
+			Latitude:  55,
+			Longitude: 25,
+		},
+	})
+
+	// create catch linked to spot
+	catchSvc.CreateCatch(model.Catch{
+		FishType: "perch",
+		Weight:   400,
+		Length:   30,
+		Lure:     "jig",
+		SpotID:   &spot.ID,
+		Location: model.Location{
+			Latitude:  55,
+			Longitude: 25,
+		},
+	})
+
+	req := httptest.NewRequest(
+		http.MethodGet,
+		fmt.Sprintf("/spots/%d/catches", spot.ID),
+		nil,
+	)
+
+	w := httptest.NewRecorder()
+
+	spotHandler.GetCatchesBySpotID(w, req)
+
+	res := w.Result()
+
+	if res.StatusCode != http.StatusOK {
+		t.Fatalf("expected 200, got %d", res.StatusCode)
+	}
+
+	var result []model.Catch
+
+	err := json.NewDecoder(res.Body).Decode(&result)
+	if err != nil {
+		t.Fatalf("failed to decode response: %v", err)
+	}
+
+	if len(result) != 1 {
+		t.Fatalf("expected 1 catch, got %d", len(result))
+	}
+
+	if result[0].FishType != "perch" {
+		t.Fatalf("expected perch, got %s", result[0].FishType)
 	}
 }
