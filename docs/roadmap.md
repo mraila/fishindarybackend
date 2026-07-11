@@ -24,7 +24,7 @@ This project is a backend system for logging fishing catches with enrichment dat
 ## 🔵 Phase 3 — Data Model Expansion (NEXT)
 - [x] Add spot model
 - [x] Add body of water to spot
-- [ ] Add empty spots (no catches)
+- [x] Add empty spots (no catches)
 - [x] Add spot to catches
 - [ ] Validate input fields
 - [ ] Improve timestamps handling
@@ -44,6 +44,7 @@ This project is a backend system for logging fishing catches with enrichment dat
 - [ ] Map visualization support
 - [ ] Cluster catches by location
 - [ ] Filter by region
+- [ ] Add satellite picture of spot
 
 ---
 

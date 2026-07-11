@@ -26,8 +26,8 @@ func (ss *SpotService) GetSpots() []model.Spot {
 	return ss.Store.Spots
 }
 
-func (s *SpotService) SpotExists(id int) bool {
-	for _, spot := range s.Store.Spots {
+func (ss *SpotService) SpotExists(id int) bool {
+	for _, spot := range ss.Store.Spots {
 		if spot.ID == id {
 			return true
 		}

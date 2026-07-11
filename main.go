@@ -4,6 +4,7 @@ import (
 	"fishindary/handler"
 	"fishindary/service"
 	"fishindary/store"
+	"fishindary/weather"
 	"fmt"
 	"net/http"
 	"strings"
@@ -12,7 +13,8 @@ import (
 func main() {
 	st := store.NewStore()
 	spotSvc := service.NewSpotService(st)
-	catchSvc := service.NewCatchService(st, spotSvc)
+	weatherClient := weather.NewClient()
+	catchSvc := service.NewCatchService(st, spotSvc, weatherClient)
 
 	catchHandler := handler.NewCatchHandler(catchSvc)
 	spotHandler := handler.NewSpotHandler(spotSvc, catchSvc)

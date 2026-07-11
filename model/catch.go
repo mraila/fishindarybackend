@@ -11,4 +11,5 @@ type Catch struct {
 	CatchTime time.Time `json:"catch_time"`
 	Location  Location  `json:"location"`
 	SpotID    *int      `json:"spot_id,omitempty"`
+	Weather   *Weather  `json:"weather,omitempty"`
 }
